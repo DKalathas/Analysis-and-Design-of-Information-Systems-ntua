@@ -1,0 +1,5 @@
+// Send message to weather queue
+curl -i -u guest:guest -H “content-type:application/json” -XPOST http://localhost:15672/api/exchanges/%2f/amq.direct/publish -d'{"properties":{},"routing_key":"weather","payload":"44.4","payload_encoding":"string"}'
+
+// Send json to weather queue
+curl -s -u guest:guest -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data '{"properties":{"delivery_mode":2},"routing_key":"weather","payload":"{\"city\":\"volos\", \"temp\":\"11\", \"unit\":\"C\"}","payload_encoding":"string"}' http://localhost:15672/api/exchanges/%2f/amq.direct/publish

@@ -1,0 +1,22 @@
+#camel:
+#  component:
+#    servlet:
+#      mapping:
+#        context-path: /api
+
+jss:
+  camel:
+    hello:
+      enabled: false
+    seda:
+      enabled: false
+    file:
+      enabled: false
+    weather:
+      enabled: false
+    wiretap:
+      enabled: false
+    rest:
+      enabled: true
+    rest-dsl:
+      enabled: true
