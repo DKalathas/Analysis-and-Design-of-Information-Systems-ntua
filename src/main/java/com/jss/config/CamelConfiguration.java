@@ -18,5 +18,5 @@ public class CamelConfiguration {
         factory.setPassword("guest");
         return factory;
     }
-
+    //this is just a comment
 }
