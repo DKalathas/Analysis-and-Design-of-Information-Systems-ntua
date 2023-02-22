@@ -49,6 +49,9 @@ public class RestDsl extends RouteBuilder {
                 .marshal().json(JsonLibrary.Jackson, WeatherDto.class)
                 .toF(RABBIT_URI, "weather-event", "weather-event");
 
+        fromF(RABBIT_URI, "weather-event", "weather-event")
+                .to("paho:test?brokerUrl=tcp://localhost:1883");
+
     }
 
     private void saveWeatherDataAndSetToExchange(Exchange exchange) {
