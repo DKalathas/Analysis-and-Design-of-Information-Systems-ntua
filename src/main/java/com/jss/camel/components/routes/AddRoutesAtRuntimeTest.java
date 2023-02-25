@@ -3,7 +3,6 @@ package com.jss.camel.components.routes;
 import com.jss.camel.dto.SensorDto;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
 import org.apache.camel.Message;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;

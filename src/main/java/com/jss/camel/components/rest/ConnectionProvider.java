@@ -1,7 +1,6 @@
 package com.jss.camel.components.rest;
 
 import com.jss.camel.dto.ConnectionDto;
-import com.jss.camel.dto.WeatherDto;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
