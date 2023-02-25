@@ -21,16 +21,4 @@ public class CamelConfiguration {
         factory.setPassword("guest");
         return factory;
     }
-
-//    public MqttPahoClientFactory mqttPahoClientFactory() {
-//        DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-//        MqttConnectOptions options = new MqttConnectOptions();
-//
-//        options.setServerURIs(new String[] {"tcp://localhost:1883"});
-//        options.setCleanSession(true);
-//
-//        factory.setConnectionOptions(options);
-//
-//        return factory;
-//    }
 }
