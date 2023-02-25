@@ -15,13 +15,15 @@ public class ConnectionDto implements Serializable {
     private int id = counter++;
 
     // Rabbit config
-    private String rabbitExchange;
-    private String queue;
     private String rabbitHost;
     private String rabbitPort;
+
+    private String rabbitExchange;
+    private String queue;
     private String routing_key;
-    //private String username;
-    //private String password;
+
+    private String username;
+    private String password;
 
     // Mosquitto config
     private String mosquittoHost;

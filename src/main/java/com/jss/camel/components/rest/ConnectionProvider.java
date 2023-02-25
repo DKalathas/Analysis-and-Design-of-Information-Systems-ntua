@@ -23,8 +23,6 @@ public class ConnectionProvider {
 
     public void setCurrentConnection(ConnectionDto dto) {
         myConnection = dto;
-        //myConnection.setQueue("mule");
-        //return myConnection;
     }
 
     public ConnectionDto getCurrentConnection(ConnectionDto myConnection) {

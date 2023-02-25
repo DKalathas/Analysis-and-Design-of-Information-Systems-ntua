@@ -17,25 +17,25 @@ public class WeatherRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("rabbitmq:amq.direct?queue=weather&routingKey=weather&autoDelete=false")
-                .log(LoggingLevel.ERROR, "Before Enrichment: ${body}")
-                .unmarshal().json(JsonLibrary.Jackson, WeatherDto.class)
-                .process(this::enrichWeatherDto)
-                .log(LoggingLevel.ERROR, "After Enrichment: ${body}")
-                .marshal().json(JsonLibrary.Jackson, WeatherDto.class)
-                .to("rabbitmq:amq.direct?queue=weather-event&routingKey=weather-event&autoDelete=false")
-                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel-demos/?fileName=weather-events.txt&fileExist=Append");
-
-        from("rabbitmq:amq.direct?queue=sensor&routingKey=sensor&autoDelete=false")
-                .log(LoggingLevel.ERROR, "Before Enrichment: ${body}")
-                .unmarshal().json(JsonLibrary.Jackson, SensorDto.class)
-                .process(this::enrichSensorDto)
-                .log(LoggingLevel.ERROR, "After Enrichment: ${body}")
-                .marshal().json(JsonLibrary.Jackson, SensorDto.class)
-                .to("rabbitmq:amq.direct?queue=sensor-event&routingKey=sensor-event&autoDelete=false");
-
-        from("rabbitmq:amq.direct?queue=sensor-event&routingKey=sensor-event&autoDelete=false")
-                .to("paho:test?brokerUrl=tcp://localhost:1883");
+//        from("rabbitmq:amq.direct?queue=weather&routingKey=weather&autoDelete=false")
+//                .log(LoggingLevel.ERROR, "Before Enrichment: ${body}")
+//                .unmarshal().json(JsonLibrary.Jackson, WeatherDto.class)
+//                .process(this::enrichWeatherDto)
+//                .log(LoggingLevel.ERROR, "After Enrichment: ${body}")
+//                .marshal().json(JsonLibrary.Jackson, WeatherDto.class)
+//                .to("rabbitmq:amq.direct?queue=weather-event&routingKey=weather-event&autoDelete=false")
+//                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel-demos/?fileName=weather-events.txt&fileExist=Append");
+//
+//        from("rabbitmq:amq.direct?queue=sensor&routingKey=sensor&autoDelete=false")
+//                .log(LoggingLevel.ERROR, "Before Enrichment: ${body}")
+//                .unmarshal().json(JsonLibrary.Jackson, SensorDto.class)
+//                .process(this::enrichSensorDto)
+//                .log(LoggingLevel.ERROR, "After Enrichment: ${body}")
+//                .marshal().json(JsonLibrary.Jackson, SensorDto.class)
+//                .to("rabbitmq:amq.direct?queue=sensor-event&routingKey=sensor-event&autoDelete=false");
+//
+//        from("rabbitmq:amq.direct?queue=sensor-event&routingKey=sensor-event&autoDelete=false")
+//                .to("paho:test?brokerUrl=tcp://localhost:1883");
     }
 
     private void enrichWeatherDto(Exchange exchange) {
