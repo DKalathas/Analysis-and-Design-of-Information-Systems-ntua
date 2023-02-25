@@ -17,9 +17,7 @@ public class WeatherDataProvider {
         weatherData.put("LONDON", dto);
     }
 
-    public WeatherDto getCurrentWeather(String city) {
-        return weatherData.get(city.toUpperCase());
-    }
+    public WeatherDto getCurrentWeather(String city) { return weatherData.get(city.toUpperCase()); }
 
     public void setCurrentWeather(WeatherDto dto) {
         dto.setReceivedTime(new Date().toString());
