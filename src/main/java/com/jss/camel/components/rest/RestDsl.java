@@ -5,9 +5,12 @@ import com.jss.camel.dto.ConnectionDto;
 import com.jss.camel.dto.RouteDto;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
+import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 import static org.apache.camel.Exchange.HTTP_RESPONSE_CODE;
@@ -34,7 +37,8 @@ public class RestDsl extends RouteBuilder {
         rest("/api")
                 .consumes("application/json").produces("application/json")
                 .post("/connection").type(ConnectionDto.class).to("direct:make-connection")
-                .delete("/delete").type(RouteDto.class).to("direct:delete-connection");
+                .delete("/delete").type(RouteDto.class).to("direct:delete-connection")
+                .get("/allconnections").to("direct:get-connections");
 
 
         from("direct:make-connection")
@@ -45,6 +49,25 @@ public class RestDsl extends RouteBuilder {
                 //.setExchangePattern(ExchangePattern.InOnly)
                 .toD("controlbus:route?routeId=${body.routeId}&action=stop&async=true")
                 .process(this::deleteConnection);
+
+
+        from("direct:get-connections")
+                .marshal().json(JsonLibrary.Jackson)
+                .setHeader("Content-Type", constant("application/json"))
+                .setHeader("Accept", constant("application/json"))
+                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                .removeHeader(Exchange.HTTP_PATH)
+                .recipientList(simple("http://localhost:15672/api/channels?bridgeEndpoint=true"))
+                .unmarshal().json(JsonLibrary.Jackson);
+                //.process(this::getConnections);
+                //.to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other?fileName=conns.txt&fileExist=Append");
+                //.log(LoggingLevel.ERROR, "${body[0].name}");
+
+    }
+
+    private void getConnections(Exchange exchange) {
+        // FIX THIS
+        JSONParser jsonParser = new JSONParser(exchange.getMessage().getBody().toString());
     }
 
 

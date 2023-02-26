@@ -15,7 +15,8 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>19</java.version>
-		<camel.version>3.7.3</camel.version>
+		<!--	From camel version 3.7.3	-->
+		<camel.version>3.19.0</camel.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -125,6 +126,18 @@
 			<version>${camel.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-python</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-python-starter</artifactId>
+			<version>${camel.version}</version>
+			<!-- use the same version as your Camel core version -->
+		</dependency>
 
 
 	</dependencies>
