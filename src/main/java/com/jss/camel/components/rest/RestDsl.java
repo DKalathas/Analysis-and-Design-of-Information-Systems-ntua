@@ -2,6 +2,7 @@ package com.jss.camel.components.rest;
 
 import com.jss.camel.components.routes.AddRoutesAtRuntimeTest;
 import com.jss.camel.dto.ConnectionDto;
+import com.jss.camel.dto.RouteDto;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.rest.RestBindingMode;
@@ -32,12 +33,22 @@ public class RestDsl extends RouteBuilder {
 
         rest("/api")
                 .consumes("application/json").produces("application/json")
-                .post("/connection").type(ConnectionDto.class).to("direct:make-connection");
+                .post("/connection").type(ConnectionDto.class).to("direct:make-connection")
+                .delete("/delete").type(RouteDto.class).to("direct:delete-connection");
 
 
         from("direct:make-connection")
                 .process(this::makeConnection);
+
+
+        from("direct:delete-connection")
+                .setExchangePattern(ExchangePattern.InOnly)
+                .log("Stopping route")
+                .to("controlbus:route?routeId=myRoute&action=stop&async=true")
+                .log("Signalled to stop route")
+                .process(this::deleteConnection);
     }
+
 
     public void makeConnection(Exchange exchange) throws Exception {
         ConnectionDto dto = exchange.getMessage().getBody(ConnectionDto.class);
@@ -47,7 +58,7 @@ public class RestDsl extends RouteBuilder {
             myConnection = dto;
             System.out.println(myConnection.toString());
 
-            String rabbit_uri = String.format("rabbitmq:%s?hostname=%s&portNumber=%s&username=%s&password=%s&queue=%s&routingKey=%s&autoDelete=false",
+            String rabbit_uri = String.format("rabbitmq:%s?hostname=%s&portNumber=%s&username=%s&password=%s&queue=%s&routingKey=%s&autoDelete=false&AutomaticRecoveryEnabled=false&topologyRecoveryEnabled=false",
                                         dto.getRabbitExchange(), dto.getRabbitHost(), dto.getRabbitPort(), dto.getUsername(), dto.getPassword(), dto.getQueue(), dto.getRouting_key());
 
             String mosquitto_uri = String.format("paho:%s?brokerUrl=tcp://%s:%s",
@@ -59,7 +70,23 @@ public class RestDsl extends RouteBuilder {
         } else {
             exchange.getMessage().setHeader(HTTP_RESPONSE_CODE, NOT_FOUND.value());
         }
+    }
 
+    private void deleteConnection(Exchange exchange) throws Exception {
+        RouteDto rout = exchange.getMessage().getBody(RouteDto.class);
+
+        if(Objects.nonNull(rout)) {
+            CamelContext context = getContext();
+            System.out.println(rout.getRouteId());
+            System.out.println(context.getRoutes());
+            context.removeRoute(rout.getRouteId());
+            System.out.println(context.getRoutes());
+            //System.out.println(context.getRoute("myRoute"));
+            //context.stop();
+
+        } else {
+            exchange.getMessage().setHeader(HTTP_RESPONSE_CODE, NOT_FOUND.value());
+        }
     }
 }
 
