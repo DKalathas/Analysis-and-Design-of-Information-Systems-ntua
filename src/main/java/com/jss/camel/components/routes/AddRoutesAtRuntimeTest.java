@@ -30,21 +30,21 @@ public class AddRoutesAtRuntimeTest {
     public static final class MyDynamcRouteBuilder extends RouteBuilder {
         private final String from;
         private final String to;
+        private final String routeId;
 
-        public MyDynamcRouteBuilder(CamelContext context, String from, String to) {
+        public MyDynamcRouteBuilder(CamelContext context, String from, String to, String routeId) {
             super(context);
             this.from = from;
             this.to = to;
+            this.routeId = routeId;
         }
 
         @Override
         public void configure() throws Exception {
             from(from)
-                //.log(LoggingLevel.ERROR, "Before Enrichment: ${body}")
-                    .id("myRoute")
+                    .id(routeId)
                 .unmarshal().json(JsonLibrary.Jackson, SensorDto.class)
                 .process(this::enrichSensorDto)
-                //.log(LoggingLevel.ERROR, "After Enrichment: ${body}")
                 .marshal().json(JsonLibrary.Jackson, SensorDto.class)
                 .to(to);
         }

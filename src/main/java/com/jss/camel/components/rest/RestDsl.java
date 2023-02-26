@@ -42,10 +42,8 @@ public class RestDsl extends RouteBuilder {
 
 
         from("direct:delete-connection")
-                .setExchangePattern(ExchangePattern.InOnly)
-                .log("Stopping route")
-                .to("controlbus:route?routeId=myRoute&action=stop&async=true")
-                .log("Signalled to stop route")
+                //.setExchangePattern(ExchangePattern.InOnly)
+                .toD("controlbus:route?routeId=${body.routeId}&action=stop&async=true")
                 .process(this::deleteConnection);
     }
 
@@ -55,8 +53,6 @@ public class RestDsl extends RouteBuilder {
         connectionProvider.setCurrentConnection(dto);
 
         if(Objects.nonNull(dto)) {
-            myConnection = dto;
-            System.out.println(myConnection.toString());
 
             String rabbit_uri = String.format("rabbitmq:%s?hostname=%s&portNumber=%s&username=%s&password=%s&queue=%s&routingKey=%s&autoDelete=false&AutomaticRecoveryEnabled=false&topologyRecoveryEnabled=false",
                                         dto.getRabbitExchange(), dto.getRabbitHost(), dto.getRabbitPort(), dto.getUsername(), dto.getPassword(), dto.getQueue(), dto.getRouting_key());
@@ -64,8 +60,10 @@ public class RestDsl extends RouteBuilder {
             String mosquitto_uri = String.format("paho:%s?brokerUrl=tcp://%s:%s",
                                         dto.getTopic(), dto.getMosquittoHost(), dto.getMosquittoPort());
 
+            String routeId = dto.getRouteId();
+
             CamelContext context = getContext();
-            context.addRoutes(new AddRoutesAtRuntimeTest.MyDynamcRouteBuilder(context, rabbit_uri, mosquitto_uri));
+            context.addRoutes(new AddRoutesAtRuntimeTest.MyDynamcRouteBuilder(context, rabbit_uri, mosquitto_uri, routeId));
 
         } else {
             exchange.getMessage().setHeader(HTTP_RESPONSE_CODE, NOT_FOUND.value());
@@ -77,12 +75,9 @@ public class RestDsl extends RouteBuilder {
 
         if(Objects.nonNull(rout)) {
             CamelContext context = getContext();
-            System.out.println(rout.getRouteId());
             System.out.println(context.getRoutes());
             context.removeRoute(rout.getRouteId());
             System.out.println(context.getRoutes());
-            //System.out.println(context.getRoute("myRoute"));
-            //context.stop();
 
         } else {
             exchange.getMessage().setHeader(HTTP_RESPONSE_CODE, NOT_FOUND.value());
