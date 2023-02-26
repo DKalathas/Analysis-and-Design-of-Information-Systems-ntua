@@ -119,6 +119,13 @@
 			<version>6.0.3</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-controlbus</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+
 
 	</dependencies>
 

@@ -10,6 +10,8 @@ import org.apache.camel.support.DefaultMessage;
 
 import java.util.Date;
 
+import static com.jss.config.CamelConfiguration.RABBIT_URI;
+
 public class AddRoutesAtRuntimeTest {
 
     protected RouteBuilder createRouteBuilder() throws Exception {
@@ -17,7 +19,7 @@ public class AddRoutesAtRuntimeTest {
             @Override
             public void configure() throws Exception {
                 // here is an existing route
-                //from("direct:start").to("mock:start");
+                //fromF(RABBIT_URI, "s1", "s1").to("mock:start");
             }
         };
     }
@@ -39,6 +41,7 @@ public class AddRoutesAtRuntimeTest {
         public void configure() throws Exception {
             from(from)
                 //.log(LoggingLevel.ERROR, "Before Enrichment: ${body}")
+                    .id("myRoute")
                 .unmarshal().json(JsonLibrary.Jackson, SensorDto.class)
                 .process(this::enrichSensorDto)
                 //.log(LoggingLevel.ERROR, "After Enrichment: ${body}")
