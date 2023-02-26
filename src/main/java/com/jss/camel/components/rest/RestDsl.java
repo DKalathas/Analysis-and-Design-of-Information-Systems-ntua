@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+import static com.jss.config.CamelConfiguration.RABBIT_URI;
 import static org.apache.camel.Exchange.HTTP_RESPONSE_CODE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -37,7 +38,9 @@ public class RestDsl extends RouteBuilder {
 
 
         from("direct:make-connection")
-                .process(this::makeConnection);
+                .toF(RABBIT_URI,"no","no");
+        fromF(RABBIT_URI,"no","no")
+                .to()
 
        from("direct:delete-connection")
                 .process(this::makeDelete);
