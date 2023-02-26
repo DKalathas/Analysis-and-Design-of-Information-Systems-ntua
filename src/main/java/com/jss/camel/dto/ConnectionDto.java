@@ -14,6 +14,9 @@ public class ConnectionDto implements Serializable {
     static int counter = 1;
     private int id = counter++;
 
+    // Route id
+    private String routeId;
+
     // Rabbit config
     private String rabbitHost;
     private String rabbitPort;
