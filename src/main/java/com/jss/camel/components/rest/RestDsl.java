@@ -32,12 +32,23 @@ public class RestDsl extends RouteBuilder {
 
         rest("/api")
                 .consumes("application/json").produces("application/json")
-                .post("/connection").type(ConnectionDto.class).to("direct:make-connection");
+                .post("/connection").type(ConnectionDto.class).to("direct:make-connection")
+                .delete("/delete").to("direct:delete-connection");
 
 
         from("direct:make-connection")
                 .process(this::makeConnection);
+
+       from("direct:delete-connection")
+                .process(this::makeDelete);
     }
+
+    public void makeDelete(Exchange exchange) throws Exception {
+        System.out.println(getContext().getRoutes());
+        getContext().removeRoute("myRoute");
+
+    }
+
 
     public void makeConnection(Exchange exchange) throws Exception {
         ConnectionDto dto = exchange.getMessage().getBody(ConnectionDto.class);
@@ -48,10 +59,10 @@ public class RestDsl extends RouteBuilder {
             System.out.println(myConnection.toString());
 
             String rabbit_uri = String.format("rabbitmq:%s?hostname=%s&portNumber=%s&username=%s&password=%s&queue=%s&routingKey=%s&autoDelete=false",
-                                        dto.getRabbitExchange(), dto.getRabbitHost(), dto.getRabbitPort(), dto.getUsername(), dto.getPassword(), dto.getQueue(), dto.getRouting_key());
+                    dto.getRabbitExchange(), dto.getRabbitHost(), dto.getRabbitPort(), dto.getUsername(), dto.getPassword(), dto.getQueue(), dto.getRouting_key());
 
             String mosquitto_uri = String.format("paho:%s?brokerUrl=tcp://%s:%s",
-                                        dto.getTopic(), dto.getMosquittoHost(), dto.getMosquittoPort());
+                    dto.getTopic(), dto.getMosquittoHost(), dto.getMosquittoPort());
 
             CamelContext context = getContext();
             context.addRoutes(new AddRoutesAtRuntimeTest.MyDynamcRouteBuilder(context, rabbit_uri, mosquitto_uri));

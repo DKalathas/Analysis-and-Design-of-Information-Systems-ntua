@@ -38,12 +38,12 @@ public class AddRoutesAtRuntimeTest {
         @Override
         public void configure() throws Exception {
             from(from)
-                //.log(LoggingLevel.ERROR, "Before Enrichment: ${body}")
                 .unmarshal().json(JsonLibrary.Jackson, SensorDto.class)
                 .process(this::enrichSensorDto)
-                //.log(LoggingLevel.ERROR, "After Enrichment: ${body}")
+                    .routeId("myRoute")
                 .marshal().json(JsonLibrary.Jackson, SensorDto.class)
-                .to(to);
+                .to(to)
+                    .end();
         }
 
         private void enrichSensorDto(Exchange exchange) {
