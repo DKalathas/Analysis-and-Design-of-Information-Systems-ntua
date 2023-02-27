@@ -2,7 +2,7 @@ import time
 import pika
 import random
 
-props = { 'connection_name' : 'sensor1' }
+props = { 'connection_name' : 'sensor2' }
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', port='5672', client_properties=props))
 channel = connection.channel()
@@ -19,7 +19,7 @@ while(True):
 
     # Publish to rabbitmq
     channel.basic_publish(exchange='amq.direct', routing_key='sensor', body=body)
-    time.sleep(1)
+    time.sleep(0.5)
 
     print(" [Sensor] Sent %s " % (body))
 

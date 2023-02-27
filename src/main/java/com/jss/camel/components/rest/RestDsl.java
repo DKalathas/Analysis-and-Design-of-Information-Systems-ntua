@@ -84,7 +84,7 @@ public class RestDsl extends RouteBuilder {
 //        Root root = mapper.readValue(new File("src/main/other/conns.json"), Root.class);
 //        System.out.println("root object name -> "+root.name);
 
-        //List<Root> rootList = mapper.readValue(exchange.getMessage().getBody().toString(), new TypeReference<List<Root>>() {});
+        //List<Root> rootList = mapper.readValue((JsonParser) exchange.getMessage().getBody(), new TypeReference<List<Root>>() {});
         List<Root> rootList = mapper.readValue(new File("src/main/other/connsList.json"), new TypeReference<List<Root>>() {});
         for (int i = 0; i < rootList.size(); i++) {
             allchannels.add(rootList.get(i).name);
