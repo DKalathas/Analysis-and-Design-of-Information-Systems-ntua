@@ -17,4 +17,13 @@ public class MessageStats {
     public GetNoAckDetails get_no_ack_details;
     public int redeliver;
     public RedeliverDetails redeliver_details;
+    public int confirm;
+    public ConfirmDetails confirm_details;
+    public int drop_unroutable;
+    public DropUnroutableDetails drop_unroutable_details;
+    public String publish;
+    public PublishDetails publish_details;
+    public int return_unroutable;
+    public ReturnUnroutableDetails return_unroutable_details;
 }
+

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jss.camel.components.routes.AddRoutesAtRuntimeTest;
+import com.jss.camel.dto.ChannelDto;
 import com.jss.camel.dto.Conn.Root;
 import com.jss.camel.dto.ConnectionDto;
 import com.jss.camel.dto.RouteDto;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -47,7 +50,9 @@ public class RestDsl extends RouteBuilder {
                 .consumes("application/json").produces("application/json")
                 .post("/connection").type(ConnectionDto.class).to("direct:make-connection")
                 .delete("/delete").type(RouteDto.class).to("direct:delete-connection")
-                .get("/allchannels").to("direct:get-channels");
+                .get("/allchannels").to("direct:get-channels")
+                .get("/allchannels/details").to("direct:get-channels-details")
+                .post("/channelrate").type(ChannelDto.class).to("direct:get-channel-rates");
 
 
         from("direct:make-connection")
@@ -73,6 +78,65 @@ public class RestDsl extends RouteBuilder {
                 //.to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other?fileName=conns.txt&fileExist=Append");
                 //.log(LoggingLevel.ERROR, "${body[0].name}");
 
+
+        from("direct:get-channels-details")
+                .marshal().json(JsonLibrary.Jackson)
+                .setHeader("Content-Type", constant("application/json"))
+                .setHeader("Accept", constant("application/json"))
+                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                .removeHeader(Exchange.HTTP_PATH)
+                .recipientList(simple("http://localhost:15672/api/channels?bridgeEndpoint=true"))
+                .unmarshal().json(JsonLibrary.Jackson);
+
+
+        from("direct:get-channel-rates")
+                .process(exchange -> {
+                    ChannelDto dto = exchange.getMessage().getBody(ChannelDto.class);
+                    String chann = URLEncoder.encode(dto.getName(), StandardCharsets.UTF_8);
+                    chann = chann.replace("+","%20");
+                    //System.out.println(chann)
+                    //dto.setName(chann);
+
+                    // set exchange message to chanel names
+                    Message message = new DefaultMessage(exchange.getContext());
+                    message.setBody(chann);
+                    exchange.setMessage(message);
+                })
+                .log(LoggingLevel.ERROR, "http://localhost:15672/api/channels/${body}?bridgeEndpoint=true")
+                //.to("http://localhost:15672/api/channels/127.0.0.1%3A35180%20-%3E%20127.0.0.1%3A5672%20%281%29?bridgeEndpoint=true");
+                //.marshal().json(JsonLibrary.Jackson);
+                .setHeader("Content-Type", constant("application/json"))
+                .setHeader("Accept", constant("application/json"))
+                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                .setHeader("Authorization", constant("Basic Z3Vlc3Q6Z3Vlc3Q="))
+                .removeHeader(Exchange.HTTP_PATH)
+                //.toD("http://localhost:15672/api/channels/${body}?bridgeEndpoint=true");
+                .recipientList(simple("http://localhost:15672/api/channels/${body}?bridgeEndpoint=true"))
+                //.unmarshal().json(JsonLibrary.Jackson)
+                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=conns.json&fileExist=Override")
+                .process(this::getRates);
+    }
+
+    private void getRates(Exchange exchange) throws IOException {
+        String channelrates = null;
+
+        // creates ObjectMapper object
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        Root root = mapper.readValue(new File("src/main/other/conns.json"), Root.class);
+
+        if(!Objects.equals(root.message_stats.publish, null)) {
+            channelrates = "Connection: "+root.name+" -- published messages: "+root.message_stats.publish+" -- with rate: "+root.message_stats.publish_details.rate+" messages per second";
+        } else {
+            channelrates = "Connection: "+root.name+" -- published messages: "+root.message_stats.deliver_get+" -- with rate: "+root.message_stats.deliver_get_details.rate+" messages per second";
+        }
+
+        System.out.println(channelrates);
+
+        // set exchange message to chanel names
+        Message message = new DefaultMessage(exchange.getContext());
+        message.setBody(channelrates);
+        exchange.setMessage(message);
     }
 
     private void getChannels(Exchange exchange) throws IOException {
@@ -86,8 +150,8 @@ public class RestDsl extends RouteBuilder {
 
         //List<Root> rootList = mapper.readValue((JsonParser) exchange.getMessage().getBody(), new TypeReference<List<Root>>() {});
         List<Root> rootList = mapper.readValue(new File("src/main/other/connsList.json"), new TypeReference<List<Root>>() {});
-        for (int i = 0; i < rootList.size(); i++) {
-            allchannels.add(rootList.get(i).name);
+        for (Root root : rootList) {
+            allchannels.add(root.name);
         }
 
         // set exchange message to chanel names
