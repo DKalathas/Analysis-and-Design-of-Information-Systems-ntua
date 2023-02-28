@@ -11,5 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 public class RouteDto {
+    private String check;
     private String routeId;
+    private String channelName;
 }
