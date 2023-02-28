@@ -125,10 +125,14 @@ public class RestDsl extends RouteBuilder {
 
         Root root = mapper.readValue(new File("src/main/other/conns.json"), Root.class);
 
-        if(!Objects.equals(root.message_stats.publish, null)) {
-            channelrates = "Connection: "+root.name+" -- published messages: "+root.message_stats.publish+" -- with rate: "+root.message_stats.publish_details.rate+" messages per second";
+        if(!Objects.equals(root.message_stats, null)) {
+            if (!Objects.equals(root.message_stats.publish, null)) {
+                channelrates = "Connection: " + root.name + " -- published messages: " + root.message_stats.publish + " -- with rate: " + root.message_stats.publish_details.rate + " messages per second";
+            } else {
+                channelrates = "Connection: " + root.name + " -- published messages: " + root.message_stats.deliver_get + " -- with rate: " + root.message_stats.deliver_get_details.rate + " messages per second";
+            }
         } else {
-            channelrates = "Connection: "+root.name+" -- published messages: "+root.message_stats.deliver_get+" -- with rate: "+root.message_stats.deliver_get_details.rate+" messages per second";
+            channelrates = "Connection: " + root.name + " -- has no messages";
         }
 
         System.out.println(channelrates);
