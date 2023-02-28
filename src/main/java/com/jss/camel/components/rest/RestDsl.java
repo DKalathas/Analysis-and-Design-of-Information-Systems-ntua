@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -60,9 +61,30 @@ public class RestDsl extends RouteBuilder {
 
 
         from("direct:delete-connection")
-                //.setExchangePattern(ExchangePattern.InOnly)
-                .toD("controlbus:route?routeId=${body.routeId}&action=stop&async=true")
-                .process(this::deleteConnection);
+                .choice()
+                    .when(simple("${body.check} == 'channelName'"))
+                        .log("We are here")
+                        .process(exchange -> {
+                            RouteDto dto = exchange.getMessage().getBody(RouteDto.class);
+                            String chann = URLEncoder.encode(dto.getChannelName(), StandardCharsets.UTF_8);
+                            chann = chann.replace("+","%20");
+
+                            // set exchange message to chanel names
+                            Message message = new DefaultMessage(exchange.getContext());
+                            message.setBody(chann);
+                            exchange.setMessage(message);
+                        })
+                        .setHeader("Content-Type", constant("application/json"))
+                        .setHeader("Accept", constant("application/json"))
+                        .setHeader(Exchange.HTTP_METHOD, constant("DELETE"))
+                        .setHeader("Authorization", constant("Basic Z3Vlc3Q6Z3Vlc3Q="))
+                        .removeHeader(Exchange.HTTP_PATH)
+                        .recipientList(simple("http://localhost:15672/api/connections/${body}?bridgeEndpoint=true"))
+                        .end()
+
+                    .otherwise()
+                        .toD("controlbus:route?routeId=${body.routeId}&action=stop&async=true")
+                        .process(this::deleteConnection);
 
 
         from("direct:get-channels")
