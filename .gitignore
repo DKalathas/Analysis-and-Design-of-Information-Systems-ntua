@@ -32,5 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-src/main/other/conns.json
-src/main/other/connsList.json
+src/main/other/conns1.json
+src/main/other/connsList1.json
+src/main/other/queue.json

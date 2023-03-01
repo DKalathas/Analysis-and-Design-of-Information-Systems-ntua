@@ -8,6 +8,8 @@ import com.jss.camel.components.routes.AddRoutesAtRuntimeTest;
 import com.jss.camel.dto.ChannelDto;
 import com.jss.camel.dto.Conn.Root;
 import com.jss.camel.dto.ConnectionDto;
+import com.jss.camel.dto.Queue.Queue;
+import com.jss.camel.dto.QueueDto;
 import com.jss.camel.dto.RouteDto;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
@@ -15,16 +17,14 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.support.DefaultMessage;
 import org.apache.camel.util.json.JsonArray;
+import org.python.bouncycastle.util.encoders.UTF8;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static org.apache.camel.Exchange.HTTP_RESPONSE_CODE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -53,10 +53,12 @@ public class RestDsl extends RouteBuilder {
                 .delete("/delete").type(RouteDto.class).to("direct:delete-connection")
                 .get("/allchannels").to("direct:get-channels")
                 .get("/allchannels/details").to("direct:get-channels-details")
-                .post("/channelrate").type(ChannelDto.class).to("direct:get-channel-rates");
+                .post("/channelrate").type(ChannelDto.class).to("direct:get-channel-rates")
+                .get("/queue").to("direct:get-queue-stats");
 
 
         from("direct:make-connection")
+                //.log(new Date().toString())
                 .process(this::makeConnection);
 
 
@@ -95,7 +97,7 @@ public class RestDsl extends RouteBuilder {
                 .removeHeader(Exchange.HTTP_PATH)
                 .recipientList(simple("http://localhost:15672/api/channels?bridgeEndpoint=true"))
                 //.unmarshal().json(JsonLibrary.Jackson)
-                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=connsList.json&fileExist=Override")
+                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=connsList1.json&fileExist=Override")
                 .process(this::getChannels);
                 //.to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other?fileName=conns.txt&fileExist=Append");
                 //.log(LoggingLevel.ERROR, "${body[0].name}");
@@ -135,8 +137,41 @@ public class RestDsl extends RouteBuilder {
                 //.toD("http://localhost:15672/api/channels/${body}?bridgeEndpoint=true");
                 .recipientList(simple("http://localhost:15672/api/channels/${body}?bridgeEndpoint=true"))
                 //.unmarshal().json(JsonLibrary.Jackson)
-                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=conns.json&fileExist=Override")
+                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=conns1.json&fileExist=Override")
                 .process(this::getRates);
+
+        from("direct:get-queue-stats")
+                .setHeader("Content-Type", constant("application/json"))
+                .setHeader("Accept", constant("application/json"))
+                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                .setHeader("Authorization", constant("Basic Z3Vlc3Q6Z3Vlc3Q="))
+                .removeHeader(Exchange.HTTP_PATH)
+                .recipientList(simple("http://localhost:15672/api/queues?bridgeEndpoint=true"))
+                .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=queue.json&fileExist=Override")
+                .process(this::getQueueStats);
+    }
+
+    private void getQueueStats(Exchange exchange) throws IOException {
+        ArrayList<String> allqueues = new ArrayList<>();
+
+        // creates ObjectMapper object
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        List<Queue> queueList = mapper.readValue(new File("src/main/other/queue.json"), new TypeReference<List<Queue>>() {});
+        for (Queue queue : queueList) {
+            if (queue.messages_ready != 0) {
+                // rabbitmq is not connected to mosquitto so the queue stores the data
+                allqueues.add("[Queue " + queue.name + "] TOTAL-DELIVERIES: "+queue.message_stats.deliver_get+" | STATE: storing | RATE: " + queue.messages_details.rate + " | READY-MESSAGES: "+queue.messages_ready );
+            } else {
+                // rabbit is connected to mosquitto and the queue delivers
+                allqueues.add("[Queue " + queue.name + "] TOTAL-DELIVERIES: "+queue.message_stats.deliver_get+" | STATE: sending | RATE: " + queue.message_stats.deliver_get_details.rate);
+            }
+        }
+
+        // set exchange message to chanel names
+        Message message = new DefaultMessage(exchange.getContext());
+        message.setBody(allqueues);
+        exchange.setMessage(message);
     }
 
     private void getRates(Exchange exchange) throws IOException {
@@ -145,7 +180,7 @@ public class RestDsl extends RouteBuilder {
         // creates ObjectMapper object
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        Root root = mapper.readValue(new File("src/main/other/conns.json"), Root.class);
+        Root root = mapper.readValue(new File("src/main/other/conns1.json"), Root.class);
 
         if(!Objects.equals(root.message_stats, null)) {
             if (!Objects.equals(root.message_stats.publish, null)) {
@@ -175,7 +210,7 @@ public class RestDsl extends RouteBuilder {
 //        System.out.println("root object name -> "+root.name);
 
         //List<Root> rootList = mapper.readValue((JsonParser) exchange.getMessage().getBody(), new TypeReference<List<Root>>() {});
-        List<Root> rootList = mapper.readValue(new File("src/main/other/connsList.json"), new TypeReference<List<Root>>() {});
+        List<Root> rootList = mapper.readValue(new File("src/main/other/connsList1.json"), new TypeReference<List<Root>>() {});
         for (Root root : rootList) {
             allchannels.add(root.name);
         }
