@@ -43,6 +43,7 @@ public class AddRoutesAtRuntimeTest {
         public void configure() throws Exception {
             from(from)
                     .id(routeId)
+                    //.setHeader("Timer", constant(new Date().toString()))
                 .unmarshal().json(JsonLibrary.Jackson, SensorDto.class)
                 .process(this::enrichSensorDto)
                 .marshal().json(JsonLibrary.Jackson, SensorDto.class)

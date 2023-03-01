@@ -8,7 +8,7 @@ connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', port
 channel = connection.channel()
 print(connection)
 
-channel.queue_declare(queue='sensor', durable=True)
+channel.queue_declare(queue='sensor2', durable=True)
 
 while(True):
     # Generate random data
@@ -18,7 +18,7 @@ while(True):
     body = '{"temp":%s,"humidity":%s,"pressure":%s}' % (temp, humidity, pressure)
 
     # Publish to rabbitmq
-    channel.basic_publish(exchange='amq.direct', routing_key='sensor', body=body)
+    channel.basic_publish(exchange='amq.direct', routing_key='sensor2', body=body)
     time.sleep(0.5)
 
     print(" [Sensor] Sent %s " % (body))
