@@ -58,7 +58,6 @@ public class RestDsl extends RouteBuilder {
 
 
         from("direct:make-connection")
-                //.log(new Date().toString())
                 .process(this::makeConnection);
 
 
@@ -68,7 +67,7 @@ public class RestDsl extends RouteBuilder {
                         .log("We are here")
                         .process(exchange -> {
                             RouteDto dto = exchange.getMessage().getBody(RouteDto.class);
-                            String chann = URLEncoder.encode(dto.getChannelName(), StandardCharsets.UTF_8);
+                            String chann = URLEncoder.encode(dto.getConnectionName(), StandardCharsets.UTF_8);
                             chann = chann.replace("+","%20");
 
                             // set exchange message to chanel names
@@ -96,11 +95,8 @@ public class RestDsl extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .removeHeader(Exchange.HTTP_PATH)
                 .recipientList(simple("http://localhost:15672/api/channels?bridgeEndpoint=true"))
-                //.unmarshal().json(JsonLibrary.Jackson)
                 .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=connsList1.json&fileExist=Override")
                 .process(this::getChannels);
-                //.to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other?fileName=conns.txt&fileExist=Append");
-                //.log(LoggingLevel.ERROR, "${body[0].name}");
 
 
         from("direct:get-channels-details")
@@ -118,25 +114,18 @@ public class RestDsl extends RouteBuilder {
                     ChannelDto dto = exchange.getMessage().getBody(ChannelDto.class);
                     String chann = URLEncoder.encode(dto.getName(), StandardCharsets.UTF_8);
                     chann = chann.replace("+","%20");
-                    //System.out.println(chann)
-                    //dto.setName(chann);
 
                     // set exchange message to chanel names
                     Message message = new DefaultMessage(exchange.getContext());
                     message.setBody(chann);
                     exchange.setMessage(message);
                 })
-                .log(LoggingLevel.ERROR, "http://localhost:15672/api/channels/${body}?bridgeEndpoint=true")
-                //.to("http://localhost:15672/api/channels/127.0.0.1%3A35180%20-%3E%20127.0.0.1%3A5672%20%281%29?bridgeEndpoint=true");
-                //.marshal().json(JsonLibrary.Jackson);
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("Accept", constant("application/json"))
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("Authorization", constant("Basic Z3Vlc3Q6Z3Vlc3Q="))
                 .removeHeader(Exchange.HTTP_PATH)
-                //.toD("http://localhost:15672/api/channels/${body}?bridgeEndpoint=true");
                 .recipientList(simple("http://localhost:15672/api/channels/${body}?bridgeEndpoint=true"))
-                //.unmarshal().json(JsonLibrary.Jackson)
                 .to("file:///home/jimk/Documents/NTUA/semester9/pliroforiaka/camel/src/main/other/?fileName=conns1.json&fileExist=Override")
                 .process(this::getRates);
 
@@ -168,7 +157,7 @@ public class RestDsl extends RouteBuilder {
             }
         }
 
-        // set exchange message to chanel names
+        // set exchange message to queue list
         Message message = new DefaultMessage(exchange.getContext());
         message.setBody(allqueues);
         exchange.setMessage(message);
@@ -194,7 +183,7 @@ public class RestDsl extends RouteBuilder {
 
         System.out.println(channelrates);
 
-        // set exchange message to chanel names
+        // set exchange message to custom string
         Message message = new DefaultMessage(exchange.getContext());
         message.setBody(channelrates);
         exchange.setMessage(message);
@@ -206,10 +195,6 @@ public class RestDsl extends RouteBuilder {
         // creates ObjectMapper object
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-//        Root root = mapper.readValue(new File("src/main/other/conns.json"), Root.class);
-//        System.out.println("root object name -> "+root.name);
-
-        //List<Root> rootList = mapper.readValue((JsonParser) exchange.getMessage().getBody(), new TypeReference<List<Root>>() {});
         List<Root> rootList = mapper.readValue(new File("src/main/other/connsList1.json"), new TypeReference<List<Root>>() {});
         for (Root root : rootList) {
             allchannels.add(root.name);

@@ -13,5 +13,5 @@ import java.io.Serializable;
 public class RouteDto {
     private String check;
     private String routeId;
-    private String channelName;
+    private String connectionName;
 }
