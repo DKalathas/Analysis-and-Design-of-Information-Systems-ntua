@@ -63,7 +63,7 @@ public class RestDsl extends RouteBuilder {
 
         from("direct:delete-connection")
                 .choice()
-                    .when(simple("${body.check} == 'channelName'"))
+                    .when(simple("${body.check} == 'connectionName'"))
                         .log("We are here")
                         .process(exchange -> {
                             RouteDto dto = exchange.getMessage().getBody(RouteDto.class);
