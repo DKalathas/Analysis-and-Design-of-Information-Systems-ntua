@@ -3,19 +3,18 @@ import pika
 import random
 import sys
 
-key = sys.argv[1]
-value = sys.argv[2]
-host = sys.argv[3]
-port = int(sys.argv[4])
-queue_name = sys.argv[5]
-routing_key = sys.argv[5]
-seconds = float(sys.argv[6])
+connection_name = sys.argv[1]
+host = sys.argv[2]
+port = int(sys.argv[3])
+queue_name = sys.argv[4]
+routing_key = sys.argv[4]
+seconds = float(sys.argv[5])
 
-props = { key : value }
+props = { "connection_name" : connection_name }
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(host, port=port, client_properties=props))
 channel = connection.channel()
-print(connection)
+#print(connection)
 
 channel.queue_declare(queue=queue_name, durable=True)
 
