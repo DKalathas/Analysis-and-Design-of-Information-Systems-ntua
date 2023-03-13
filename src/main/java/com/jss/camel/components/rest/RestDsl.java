@@ -1,6 +1,5 @@
 package com.jss.camel.components.rest;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,15 +8,12 @@ import com.jss.camel.dto.ChannelDto;
 import com.jss.camel.dto.Conn.Root;
 import com.jss.camel.dto.ConnectionDto;
 import com.jss.camel.dto.Queue.Queue;
-import com.jss.camel.dto.QueueDto;
 import com.jss.camel.dto.RouteDto;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.support.DefaultMessage;
-import org.apache.camel.util.json.JsonArray;
-import org.python.bouncycastle.util.encoders.UTF8;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
